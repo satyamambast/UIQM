@@ -33,7 +33,7 @@ bool hasEnding(const string &fullString, const string &ending);
 
 int main(int argc, char** argv) {
     if (argc != 2) {
-        printf("usage: UIQM <Image_Directory>\n");
+        printf("usage: UIQM <Video File Name>\n");
         return -1;
     }
     
@@ -43,45 +43,72 @@ int main(int argc, char** argv) {
     Uiconm uiconm;
     
     // Loads all image files from the given directory.
-    DIR *dir;
-    struct dirent *ent;
-
-    printf("Image path: %s\n", argv[1]);
-    if ((dir = opendir(argv[1])) != NULL) {
-        string imgDir = argv[1];
-        if (!hasEnding(imgDir, "/")) imgDir += "/";
-        while ((ent = readdir(dir)) != NULL) {
+    // DIR *dir;
+    // struct dirent *ent;
+    string videoPath = argv[1];
+    VideoCapture cap(videoPath);
+    if(!cap.isOpened()){
+    cout << "Error opening video stream or file" << endl;
+    return -1;
+    }
+    int fc = 0;
+    while (1) {
             Mat image;
-            string imgPath(imgDir + string(ent->d_name));
-            if (hasEnding(imgPath, ".jpg") || hasEnding(imgPath, ".JPG") ||\
-                hasEnding(imgPath, ".png") || hasEnding(imgPath, ".PNG") ||\
-                hasEnding(imgPath, ".jpeg") || hasEnding(imgPath, ".JPEG")) {
-                image = imread(imgPath, 1);
+            cap >> image;
 
-                if (!image.data) {
-                    printf("No image data in file %s \n", imgPath.c_str());
+                if (image.empty()) {
+                    cout<<"end";
+                    break;
                 } else {
-                    printf("Successfully loaded image:  %s \n", imgPath.c_str());
+                    printf("frame number = %d", fc);
                     float sum = 0;
                     sum += C1 * uicm.calculate(image, ALPHAL, ALPHAR);
                     sum += C2 * uism.calculate(image);
                     sum += C3 * uiconm.calculate(image);
-                    cout << "The UIQM value for image " <<  imgPath.c_str() << " is " << sum << endl << endl;
+                    cout << "UIQM" << " is " << sum << endl << endl;
+                    fc++;
                     
                 }
             }
-        }
-        closedir(dir);
-    } else {
-        /* could not open directory */
-        printf("Error: Could not open directory");
-        perror("");
-        return 1;
-    }
+            return 0;
+        }     
+
+    // printf("Image path: %s\n", argv[1]);
+    // if ((dir = opendir(argv[1])) != NULL) {
+    //     string imgDir = argv[1];
+    //     if (!hasEnding(imgDir, "/")) imgDir += "/";
+    //     while ((ent = readdir(dir)) != NULL) {
+    //         Mat image;
+    //         string imgPath(imgDir + string(ent->d_name));
+    //         if (hasEnding(imgPath, ".jpg") || hasEnding(imgPath, ".JPG") ||\
+    //             hasEnding(imgPath, ".png") || hasEnding(imgPath, ".PNG") ||\
+    //             hasEnding(imgPath, ".jpeg") || hasEnding(imgPath, ".JPEG")) {
+    //             image = imread(imgPath, 1);
+
+    //             if (!image.data) {
+    //                 printf("No image data in file %s \n", imgPath.c_str());
+    //             } else {
+    //                 printf("Successfully loaded image:  %s \n", imgPath.c_str());
+    //                 float sum = 0;
+    //                 sum += C1 * uicm.calculate(image, ALPHAL, ALPHAR);
+    //                 sum += C2 * uism.calculate(image);
+    //                 sum += C3 * uiconm.calculate(image);
+    //                 cout << "UIQM" <<  imgPath.c_str() << " is " << sum << endl << endl;
+                    
+    //             }
+    //         }
+    //     }
+    //     closedir(dir);
+    // } else {
+    //     /* could not open directory */
+    //     printf("Error: Could not open directory");
+    //     perror("");
+    //     return 1;
+    // }
 
 
-    return 0;
-}
+//     // return 0;
+// // }
 
 
 bool hasEnding(const string &fullString, const string &ending) {
